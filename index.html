@@ -3,11 +3,29 @@
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 </header>
 <body>
+    
     <label for="of">OF : </label>
     <input id="of" type="text" onkeyup="kUp(event)">
     <button id="chargerBtn" onclick=fetchOF()>Charger</button>
+    
+    <div>
+        <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">N° série composant</th>
+                <th scope="col">N° pièce composant</th>
+                <th scope="col">Description composant</th>
+                <th scope="col">N° lot composant</th>
+                <th scope="col">N° série père</th>
+              </tr>
+            </thead>
+            <tbody id='ofData'>
 
-    <div id='ofData'></div>
+            </tbody>
+          </table>
+
+    </div>
 </body>
 
 <script src="main.js"></script>
