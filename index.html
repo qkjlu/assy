@@ -1,8 +1,13 @@
 <!DOCTYPE html>
+<header>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</header>
+<body>
+    <label for="of">OF : </label>
+    <input id="of" type="text" onkeyup="kUp(event)">
+    <button id="chargerBtn" onclick=fetchOF()>Charger</button>
 
+    <div id='ofData'></div>
+</body>
 
-<label id ='test' for="of">OF : </label>
-<input id="of" type="text">
-<button id="ok">test</button>
-
-<script src="index.js"></script>
+<script src="main.js"></script>
