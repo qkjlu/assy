@@ -1,8 +1,8 @@
-let ofs = {}
+
 
 function fetchOF(){
-    
-    const of = document.getElementById('of').value
+    let ofs = {}
+    const of = document.getElementById('of').value.replace("-", "/")
     const xhr = new XMLHttpRequest();
     xhr.open('get', `http://localhost:3000/of/${of}`)
     xhr.send()
@@ -29,7 +29,8 @@ function fetchOF(){
         
         for (const of in ofs) {
             // Construction de la chaine d'OF composants
-            let col1 = of
+            
+            col1 = of
             let lastel = ''
             for (const el of ofs[of].fils) {
                 if(col1 === of){
@@ -50,6 +51,8 @@ function fetchOF(){
             if(col1.slice(-2) == 'to'){
                 col1 += lastel
             } 
+        
+            
 
             // Construction de la chaine de numéro de série 
             let col2 = ''
@@ -90,10 +93,49 @@ function fetchOF(){
 
 const kPress = function (e) {
     if(e.code == 'Enter') {
-        fetchOF()
+        const of = new OF(document.getElementById('of').value)
+        //fetchOF()
     }
 }
 
+class OF {
+    constructor(num){
+        this.num = num
+        this.composants = []
+        this.fetch()
+    }
+
+    fetch() {
+        const xhr = new XMLHttpRequest();
+        xhr.open('get', `http://localhost:3000/of/${this.num}`)
+        xhr.send()
+        xhr.onload = () => {
+            for (const row of JSON.parse(xhr.response)) {
+                if(this.isAssy(row)) {
+                    // Si le composant est un ensemble alors on crée un OF qui va s'auto-fetch
+                    const composant = new Composant("OF")
+                    this.composants.push(new Composant(row["Comp_ Serial No_"]))
+                } else {
+                    this.composants.push(row)
+                }
+                
+            }
+            
+        }
+    }
+
+    isAssy(row) {
+        let res = undefined
+        row["Comp_ Serial No_"] == "" ? res = false : res = true
+        return res
+    }
+}
+
+class Composant {
+    constructor(type){
+        this.type = type
+    }
+}
 
 
 

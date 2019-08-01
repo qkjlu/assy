@@ -14,8 +14,23 @@ app.get('/of/:of', async (req, res) => {
   const query = `select [Comp_ Serial No_], [Comp_ Item No_], [Comp_ Description], [Comp_ Lot No_], [Serial No_]
   from [PROD_MSI$Traçabilité OF]
   where [Prod_ Order No_] = 'OF${req.params.of}' and [Comp_ Item No_] NOT LIKE 'FOURN%'
-  order by [Comp_ Serial No_]`;
+  order by [Comp_ Serial No_] DESC`;
 
+  sql.query(connectionString, query, (err, rows) => {
+    if(err) {
+      res.sendStatus(500)
+      throw err
+    }
+    res.send(rows).status(200)
+  });
+})
+
+app.get('/of/:of/:sn', async (req, res) => {
+  console.log(req.method +" "+ req.url)
+  const query = `select [Comp_ Serial No_], [Comp_ Item No_], [Comp_ Description], [Comp_ Lot No_], [Serial No_]
+  from [PROD_MSI$Traçabilité OF]
+  where [Comp_ Item No_] NOT LIKE 'FOURN%' and [Serial No_] = 'OF${req.params.of + '-' + req.params.sn}'
+  order by [Comp_ Serial No_] DESC`;
   sql.query(connectionString, query, (err, rows) => {
     if(err) {
       res.sendStatus(500)
