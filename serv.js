@@ -1,10 +1,12 @@
 const express = require('express')
+const cors = require('cors')
 const app = express()
 const port = 3000
 const sql = require("msnodesqlv8");
 const connectionString = "server=ser-sql2011;Database=NAV_MSI_PROD;Trusted_Connection=Yes;Driver={SQL Server Native Client 11.0}";
 
-app.get('/', (req, res) => res.send('Hello World!'))
+app.use(cors())
+
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
 
 app.get('/of/:of', async (req, res) => {
