@@ -98,42 +98,129 @@ const kPress = function (e) {
     }
 }
 
-class OF {
+class Ensemble {
     constructor(num){
-        this.num = num
-        this.composants = []
-        this.fetch()
+        const composant = new Composant("OF", num)
+        this._root = composant
     }
 
-    fetch() {
-        const xhr = new XMLHttpRequest();
-        xhr.open('get', `http://localhost:3000/of/${this.num}`)
-        xhr.send()
-        xhr.onload = () => {
-            for (const row of JSON.parse(xhr.response)) {
-                if(this.isAssy(row)) {
-                    // Si le composant est un ensemble alors on crée un OF qui va s'auto-fetch
-                    const composant = new Composant("OF")
-                    this.composants.push(new Composant(row["Comp_ Serial No_"]))
-                } else {
-                    this.composants.push(row)
-                }
-                
-            }
-            
-        }
-    }
-
-    isAssy(row) {
-        let res = undefined
-        row["Comp_ Serial No_"] == "" ? res = false : res = true
-        return res
+    fetchAll(){
+        this._root.fetchChildren()
     }
 }
 
+
 class Composant {
-    constructor(type){
+    constructor(type, num){
+        if(type == 'undefined'){
+            throw new Error("Un composant doit avoir un type (e.g: OF, OA, ...) ")
+        }
+        if(this.num == 'undefined'){
+            throw new Error("Un composant doit avoir un numéro")
+        }
         this.type = type
+        this.serials = []
+        this.composants = []
+        this.addNum(num);
+    }
+    fetchChildren(){
+        if(this.type == 'OF'){
+            this.serials.length != 0 ? this.fetchChildren_OFWithSerial() : this.fetchChildren_OFWithoutSerial()
+        }
+    }
+    fetchChildren_OFWithoutSerial(){
+        const xhr = new XMLHttpRequest()
+        xhr.open('get', `http://localhost:3000/of/${this.num}`)
+        xhr.send()
+        xhr.onload = () => {
+            const json = JSON.parse(xhr.response)
+            json.forEach( value => {
+                if(this.isOF(value)){
+                    const num = row["Comp_ Serial No_"]
+                    const composant = new Composant("OF", num)
+                    this.composants.push(composant)
+                    composant.fetchChildren()
+                    
+                } else if (this.isMAT(value)){
+                    const num = row["Comp_ Lot No_"]
+                    const composant = new Composant("OA", num)
+                    this.composants.push(composant)
+                }
+
+            })
+        }
+    }
+    fetchChildren_OFWithSerial(){
+        if(this.serials.length == 0){
+            throw new Error("Un OF composant doit avoir au moins un N° de série spécifié")
+        }
+        const xhr = new XMLHttpRequest();
+        this.serials.forEach( value => {
+            xhr.open('get', `http://localhost:3000/of/${this.num}/${value}`)
+            xhr.send()
+            xhr.onload = () => {
+                const json = JSON.parse(xhr.response)
+                json.forEach( value => {
+                    if(this.isOF(value)){
+                        const num = row["Comp_ Serial No_"]
+                        const composant = new Composant("OF", num)
+                        this.addComposant(composant)
+                        composant.fetchChildren()
+                        
+                    } else if (this.isMAT(value)){
+                        const num = row["Comp_ Lot No_"]
+                        const composant = new Composant("OA", num)
+                        this.addComposant(composant)
+                    }
+
+                })
+            } 
+        })
+        
+    }
+
+    addNum(num){
+        this.type == "OF" ? this.addNumOF(num) : 
+        this.type == "OA" ? this.addNumOA(num) : 1
+    }
+
+    addNumOF(num){
+        this.num = num.split('-')[0].slice(2)
+        this.addSerial(num.split('-')[1])
+    }
+
+    addNumOA(num){
+        num.include('OA') ? this.num = num.slice(2) : this.num = num
+    }
+
+    addSerial(serial) {
+        this.serials.push(serial)
+    }
+
+    addComposant(composant) {
+        this.composants.push(composant)
+    }
+
+    isOF(row) {
+        let res = undefined
+        row["Comp_ Serial No_"].include("OF") ? res = true : res = false
+        return res
+    }
+
+    isMAT(row) {
+        let res = undefined
+        row["Comp_ Item No_"].include("MAT") ? res = true : res = false
+        return res
+    }
+
+    isFOURN(row) {
+        let res = undefined
+        row["Comp_ Item No_"].include("FOURN") ? res = true : res = false
+        return res
+    }
+
+    render(){
+
     }
 }
 
