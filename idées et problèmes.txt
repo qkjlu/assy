@@ -1,0 +1,22 @@
+à faire :
+	-si le N° série composant est undefined alors mettre numéro de lot
+	-modifier le front : faire des cases qui se développent en cliquant
+à la place d'un tableau
+	-quand on clique sur un OF composant qui a plusieurs occurence dans l'OF
+père alors on récupère, les OF composants du composant avec numéro de série.
+Il faut effectuer cette descente jusqu'au OA et récupérer l'ensemble des OA
+qui nous intéressent
+	-récupérer les OA correspondant aux SN composants
+	-trouver un moyen de remonter PV TEST, TD, ST, PR, NCR, regarder comment
+les phases remontent sur la fiche suiveuse OU relevé de cote (1552002 par ex.)
+	-rendre le code plus propre en créant une classe "of"
+	-prévenir utilisateur des of topsolid
+
+problème : 
+	-pv qpq 1359785 dans Q mais ne remonte pas dans CP_PV_BASE
+	-quand le n° série d'un composant est un num de commande externe alors
+ of fils introuvable. Possibilité de le remonter dans selection NS de l'App Qual
+	-parfois il y a des fourn pour lesquels on veut l'OA
+	-certain certificats matière qui n'ont pas "OA" dans leur titre (fourni par
+le client) ont parfois des noms correspondants
+à leur HN et HT (of1392465 pour 4510617283-1-1)
