@@ -1,100 +1,18 @@
-
-
 function fetchOF(){
-    let ofs = {}
-    const of = document.getElementById('of').value.replace("-", "/")
-    const xhr = new XMLHttpRequest();
-    xhr.open('get', `http://localhost:3000/of/${of}`)
-    xhr.send()
-    xhr.onload = () => {
-        
-        const JSONresponse = JSON.parse(xhr.response)
-        let tr = ''
-        
-        for (const row of JSONresponse) { 
-            const num = row['Comp_ Serial No_'].split('-')
-            const pere = row['Serial No_'].split('-')
-            if ( ofs[num[0]] === undefined ) {
-                ofs[num[0]] = {}
-                ofs[num[0]].fils = []
-                ofs[num[0]].pere = []   
-                
-            } 
-            ofs[num[0]].fils.push(num[1]) 
-            ofs[num[0]].pere.push(pere[2])
-            ofs[num[0]].pn = row['Comp_ Item No_']
-            ofs[num[0]].descr = row['Comp_ Description']
-            ofs[num[0]].lot = row['Comp_ Lot No_']
-        }   
-        
-        for (const of in ofs) {
-            // Construction de la chaine d'OF composants
-            
-            col1 = of
-            let lastel = ''
-            for (const el of ofs[of].fils) {
-                if(col1 === of){
-                    col1 += '-' + el
-                } else if(parseInt(lastel)+1 == parseInt(el)){
-                    if(col1.slice(-2) != 'to') {
-                        col1 += 'to'
-                    }
-                } else if (parseInt(lastel)+1 != parseInt(el)) {
-                    if(col1.slice(-2) == 'to') {
-                        col1 += lastel + '-' + el
-                    } else {
-                        col1 += '-' + el
-                    }
-                }
-                lastel = el;
-            }
-            if(col1.slice(-2) == 'to'){
-                col1 += lastel
-            } 
-        
-            
-
-            // Construction de la chaine de numéro de série 
-            let col2 = ''
-            lastel = ''
-            for (const el of ofs[of].pere) {
-                if(col2 === ''){
-                    col2 += el
-                } else if(parseInt(lastel)+1 == parseInt(el)){
-                    if(col2.slice(-2) != 'to') {
-                        col2 += 'to'
-                    }
-                } else if (parseInt(lastel)+1 != parseInt(el)) {
-                    if(col2.slice(-2) == 'to') {
-                        col2 += lastel + '-' + el
-                    } else {
-                        col2 += '-' + el
-                    }
-                }
-                lastel = el;
-            }
-            if(col2.slice(-2) == 'to'){
-                col2 += lastel
-            } 
-
-            tr += `<tr>
-            <th scope="row">${col1}</th>
-            <td>${ofs[of].pn}</td>
-            <td>${ofs[of].descr}</td>
-            <td>${ofs[of].lot}</td>
-            <td>${col2}</td>
-            </tr>`;
-        }
-        
-        document.getElementById('ofData').innerHTML = tr
-    }
+    const ens = new Ensemble(document.getElementById('of').value)
+        ens.fetchAll( () => {
+            document.getElementById('data').innerHTML = ens.render()
+        })
 }
 
+const colorize = (element, event) => {
+    event.stopPropagation()
+    element.style.borderColor == "" ? element.style.borderColor = "Lime" : element.style.borderColor = ""
+}
 
 const kPress = function (e) {
-    if(e.code == 'Enter') {
-        const of = new OF(document.getElementById('of').value)
-        //fetchOF()
+    if(e.code == 'Enter' || e.code == 'NumpadEnter') {
+        fetchOF()
     }
 }
 
@@ -104,79 +22,114 @@ class Ensemble {
         this._root = composant
     }
 
-    fetchAll(){
-        this._root.fetchChildren()
+    fetchAll(callback){
+       this._root.fetchChildren(callback)
+    }
+    render() {
+        return this._root.render()
+    }
+
+    flatten(){
+        const out = {}
+        this._root.getChilds().forEach((child)=> {
+            while( !child.isLeaf() ) {
+                //Trouver un moyen de descendre tout en bas de l'arbre
+                out[child.getNum()].push(child.getSerial())    
+            }
+            
+        })
     }
 }
 
 
 class Composant {
-    constructor(type, num){
+    constructor(type, num, descr){
         if(type == 'undefined'){
             throw new Error("Un composant doit avoir un type (e.g: OF, OA, ...) ")
         }
         if(this.num == 'undefined'){
             throw new Error("Un composant doit avoir un numéro")
         }
+        if(this.descr == 'undefined') {
+            throw new Error("Un composant doit avoir une description")
+        }
         this.type = type
-        this.serials = []
         this.composants = []
+        this.descr = descr
+        this.serial = 'undefined'
         this.addNum(num);
     }
-    fetchChildren(){
+    
+    getChilds(){
+        return this.composants
+    }
+
+    getNum(){
+        return this.num
+    }
+
+    isLeaf(){
+        return this.getChilds().length == 0
+    }
+
+    fetchChildren(callback){
         if(this.type == 'OF'){
-            this.serials.length != 0 ? this.fetchChildren_OFWithSerial() : this.fetchChildren_OFWithoutSerial()
+            this.serial != 'undefined' ? this.fetchChildren_OFWithSerial(callback) : this.fetchChildren_OFWithoutSerial(callback)
         }
     }
-    fetchChildren_OFWithoutSerial(){
+    fetchChildren_OFWithoutSerial(callback){
         const xhr = new XMLHttpRequest()
         xhr.open('get', `http://localhost:3000/of/${this.num}`)
         xhr.send()
         xhr.onload = () => {
             const json = JSON.parse(xhr.response)
+            
             json.forEach( value => {
                 if(this.isOF(value)){
-                    const num = row["Comp_ Serial No_"]
-                    const composant = new Composant("OF", num)
+                    const num = value["Comp_ Serial No_"]
+                    const descr = value["Comp_ Description"]
+                    const composant = new Composant("OF", num, descr)
                     this.composants.push(composant)
-                    composant.fetchChildren()
+                    composant.fetchChildren(callback)
                     
                 } else if (this.isMAT(value)){
-                    const num = row["Comp_ Lot No_"]
-                    const composant = new Composant("OA", num)
+                    const num = value["Comp_ Lot No_"]
+                    const descr = value["Comp_ Description"]
+                    const composant = new Composant("OA", num, descr)
                     this.composants.push(composant)
                 }
 
             })
+            callback()
         }
     }
-    fetchChildren_OFWithSerial(){
-        if(this.serials.length == 0){
+    fetchChildren_OFWithSerial(callback){
+        if(this.serial == 'undefined'){
             throw new Error("Un OF composant doit avoir au moins un N° de série spécifié")
         }
-        const xhr = new XMLHttpRequest();
-        this.serials.forEach( value => {
-            xhr.open('get', `http://localhost:3000/of/${this.num}/${value}`)
-            xhr.send()
-            xhr.onload = () => {
-                const json = JSON.parse(xhr.response)
-                json.forEach( value => {
-                    if(this.isOF(value)){
-                        const num = row["Comp_ Serial No_"]
-                        const composant = new Composant("OF", num)
-                        this.addComposant(composant)
-                        composant.fetchChildren()
-                        
-                    } else if (this.isMAT(value)){
-                        const num = row["Comp_ Lot No_"]
-                        const composant = new Composant("OA", num)
-                        this.addComposant(composant)
-                    }
+        const xhr = new XMLHttpRequest()
+        xhr.open('get', `http://localhost:3000/of/${this.num}/${this.serial}`)
+        xhr.send()
+        xhr.onload = () => {
+            const json = JSON.parse(xhr.response)
+            json.forEach( value => {
+                if(this.isOF(value)){
+                    const num = value["Comp_ Serial No_"]
+                    const descr = value["Comp_ Description"]
+                    const composant = new Composant("OF", num, descr)
+                    this.addComposant(composant)
+                    composant.fetchChildren(callback)
+                    
+                } else if (this.isMAT(value)){
+                    const num = value["Comp_ Lot No_"]
+                    const descr = value["Comp_ Description"]
+                    const composant = new Composant("OA", num, descr)
+                    this.addComposant(composant)
+                }
 
-                })
-            } 
-        })
-        
+            })
+            callback()
+        } 
     }
 
     addNum(num){
@@ -185,42 +138,61 @@ class Composant {
     }
 
     addNumOF(num){
-        this.num = num.split('-')[0].slice(2)
-        this.addSerial(num.split('-')[1])
+        num.includes('OF') ? this.num = num.split('-')[0].slice(2) : this.num = num.split('-')[0]
+        if(num.split('-').length > 1){
+            this.setSerial(num.split('-')[1])
+        }   
+        
     }
 
     addNumOA(num){
-        num.include('OA') ? this.num = num.slice(2) : this.num = num
+        if(num.includes('OA')){
+            this.num = num.slice(2)
+        } else {
+            this.num = num 
+            this.type = "MAT-NO-OA"
+        }        
     }
 
-    addSerial(serial) {
-        this.serials.push(serial)
+    setSerial(serial) {
+        this.serial = serial
     }
 
     addComposant(composant) {
         this.composants.push(composant)
     }
 
-    isOF(row) {
+    isOF(value) {
         let res = undefined
-        row["Comp_ Serial No_"].include("OF") ? res = true : res = false
+        value["Comp_ Serial No_"].includes("OF") ? res = true : res = false
         return res
     }
 
-    isMAT(row) {
+    isMAT(value) {
         let res = undefined
-        row["Comp_ Item No_"].include("MAT") ? res = true : res = false
+        value["Comp_ Item No_"].includes("MAT") ? res = true : res = false
         return res
     }
 
-    isFOURN(row) {
+    isFOURN(value) {
         let res = undefined
-        row["Comp_ Item No_"].include("FOURN") ? res = true : res = false
+        value["Comp_ Item No_"].includes("FOURN") ? res = true : res = false
         return res
+    }
+
+    getSerial() {
+        return this.serial
     }
 
     render(){
-
+        const compRender = []
+        this.composants.forEach( x => compRender.push(x.render()) )
+        return `
+        <div style='border-style : solid ; margin : 5px ; padding : 5px' onclick='colorize(this, event)'> 
+            ${this.type == 'MAT-NO-OA' ? this.num : this.type + this.num}
+            ${this.serial != 'undefined' ? "- " + this.getSerial()  : "" } </br>
+            (${this.descr}) ${compRender.join('')}
+        </div>`
     }
 }
 
