@@ -1,8 +1,10 @@
+let ens = 'undefined'
+
 function fetchOF(){
-    const ens = new Ensemble(document.getElementById('of').value)
-        ens.fetchAll( () => {
-            document.getElementById('data').innerHTML = ens.render()
-        })
+    ens = new Ensemble(document.getElementById('of').value)
+    ens.fetchAll( () => {
+        document.getElementById('data').innerHTML = ens.render()
+    })
 }
 
 const colorize = (element, event) => {
@@ -30,20 +32,28 @@ class Ensemble {
     }
 
     flatten(){
-        const out = {}
-        this._root.getChilds().forEach((child)=> {
-            while( !child.isLeaf() ) {
-                //Trouver un moyen de descendre tout en bas de l'arbre
-                out[child.getNum()].push(child.getSerial())    
-            }
-            
+        this._root.getChilds.forEach( (x) => {
+            x.flatten()
+        })
+       
+    }
+
+    renderFlatten(out) {
+        let rendering = undefined
+        out.forEach( (val) => {
+            rendering += `
+            <div style='border-style : solid ; margin : 5px ; padding : 5px' onclick='colorize(this, event)'> 
+                OF${val} -
+                ${val.serials.join('-')} </br>
+                (${this.descr}) ${compRender.join('')}
+            </div>
+            `
         })
     }
 }
 
-
 class Composant {
-    constructor(type, num, descr){
+    constructor(type, num, descr, pere){
         if(type == 'undefined'){
             throw new Error("Un composant doit avoir un type (e.g: OF, OA, ...) ")
         }
@@ -53,23 +63,51 @@ class Composant {
         if(this.descr == 'undefined') {
             throw new Error("Un composant doit avoir une description")
         }
+        this.pere = pere
         this.type = type
         this.composants = []
         this.descr = descr
         this.serial = 'undefined'
         this.addNum(num);
     }
-    
+
+    flatten(){
+        if( !this.isLeaf() ){
+            this.getChilds().forEach( (x)=> {
+                x.flatten();
+            })
+        } 
+    }
+
+    flatteninput(out){
+        
+        this.getChilds().forEach( (child) => {
+            if( !out[child.getNum()] && child.type != ("OA" || "MAT-NO-OA") ) {
+                out[child.getNum()] = {}
+                out[child.getNum()].serials = []
+                out[child.getNum()].OAs = []
+            }
+            if( child.type == ("OA" || "MAT-NO-OA") ){
+                if( !out[this.getNum()].OAs.includes(child.getNum()) ) {
+                    out[this.getNum()].OAs.push(child.getNum())  
+                }
+            } else {
+                out[child.getNum()].serials.push(child.getSerial())
+                child.flatten(out)
+            }
+        })
+    }
+
+    isLeaf(){
+        return this.composants.length
+    }
+
     getChilds(){
         return this.composants
     }
 
     getNum(){
         return this.num
-    }
-
-    isLeaf(){
-        return this.getChilds().length == 0
     }
 
     fetchChildren(callback){
@@ -88,14 +126,14 @@ class Composant {
                 if(this.isOF(value)){
                     const num = value["Comp_ Serial No_"]
                     const descr = value["Comp_ Description"]
-                    const composant = new Composant("OF", num, descr)
+                    const composant = new Composant("OF", num, descr, this)
                     this.composants.push(composant)
                     composant.fetchChildren(callback)
                     
                 } else if (this.isMAT(value)){
                     const num = value["Comp_ Lot No_"]
                     const descr = value["Comp_ Description"]
-                    const composant = new Composant("OA", num, descr)
+                    const composant = new Composant("OA", num, descr, this)
                     this.composants.push(composant)
                 }
 
@@ -116,14 +154,14 @@ class Composant {
                 if(this.isOF(value)){
                     const num = value["Comp_ Serial No_"]
                     const descr = value["Comp_ Description"]
-                    const composant = new Composant("OF", num, descr)
+                    const composant = new Composant("OF", num, descr, this)
                     this.addComposant(composant)
                     composant.fetchChildren(callback)
                     
                 } else if (this.isMAT(value)){
                     const num = value["Comp_ Lot No_"]
                     const descr = value["Comp_ Description"]
-                    const composant = new Composant("OA", num, descr)
+                    const composant = new Composant("OA", num, descr, this)
                     this.addComposant(composant)
                 }
 
