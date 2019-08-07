@@ -1,31 +1,14 @@
 <!DOCTYPE html>
 <header>
     <link href="bootstrap.min.css" rel="stylesheet" >
+    <link href="styles.css" rel="stylesheet" >
 </header>
 <body>
-    
     <label for="of">OF : </label>
     <input id="of" type="text" onkeypress="kPress(event)">
     <button id="chargerBtn" onclick=fetchOF()>Charger</button>
     
     <div id="data"></div>
-
-    <div>
-        <table class="table">
-            <thead>
-              <tr>
-                <th scope="col">N° série composant</th>
-                <th scope="col">N° pièce composant</th>
-                <th scope="col">Description composant</th>
-                <th scope="col">N° lot composant</th>
-                <th scope="col">N° série père</th>
-              </tr>
-            </thead>
-            <tbody id='ofData'>
-
-            </tbody>
-          </table>
-    </div>
 </body>
 
 <script src="main.js"></script>

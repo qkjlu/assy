@@ -11,7 +11,8 @@ qui nous intéressent
 les phases remontent sur la fiche suiveuse OU relevé de cote (1552002 par ex.)
 	-rendre le code plus propre en créant une classe "of"
 	-prévenir utilisateur des of topsolid
-
+	-gérer les kit fournitures sur les tandems
+_____________________________________________________________________________
 problème : 
 	-pv qpq 1359785 dans Q mais ne remonte pas dans CP_PV_BASE
 	-quand le n° série d'un composant est un num de commande externe alors
@@ -20,3 +21,5 @@ problème :
 	-certain certificats matière qui n'ont pas "OA" dans leur titre (fourni par
 le client) ont parfois des noms correspondants
 à leur HN et HT (of1392465 pour 4510617283-1-1)
+	-les fournitures de l'OF 1396171 (tandem) ne remonte pas alors que c'est un 
+OF (pas de N° de série par contre)
