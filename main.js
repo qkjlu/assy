@@ -23,9 +23,9 @@ class Ensemble {
         const composant = new Composant("OF", num)
         this._root = composant
     }
-
+    
     fetchAll(callback){
-        this._root.fetchProcedesSpeciaux().then(this._root.fetchChildren(callback))       
+        this._root.fetchDescr().then(this._root.fetchChildren(callback))
     }
     render() {
         return this._root.render()
@@ -105,10 +105,22 @@ class Composant {
     getNum(){
         return this.num
     }
+    fetchDescr(){
+        return new Promise((resolve) => {
+            const xhr = new XMLHttpRequest()
+            xhr.open('get', `http://localhost:3000/of/${this.num}/description`)
+            xhr.send()
+            xhr.onload = () => {
+                const json = JSON.parse(xhr.response)
+                this.descr = json[0].description
+                resolve()
+            }
+        })
+    }
     fetchProcedesSpeciaux(){
         return new Promise((resolve) => {
             const xhr = new XMLHttpRequest()
-            xhr.open('get', `http://localhost:3000/procedes-speciaux/${this.num}`)
+            xhr.open('get', `http://localhost:3000/of/${this.num}/procedes-speciaux`)
             xhr.send()
             xhr.onload = () => {
                 const json = JSON.parse(xhr.response)
@@ -230,7 +242,7 @@ class Composant {
         <div class='composant ${this.pere == undefined ? 'flex-container' : '' }' onclick='colorize(this, event)'> 
             <span style='font-weight: bold;'> ${this.type == 'MAT-NO-OA' ? this.num : this.type + this.num} 
             ${this.serial != 'undefined' ? "- " + this.getSerial()  : "" } </span> (${this.descr}) 
-            ${this.procedesSpeciaux.length ? ' <br> <span style=\'color: blue;\'> Procédés spéciaux : ' + this.procedesSpeciaux.join(', ')  + '</span>' : "" }
+            ${this.procedesSpeciaux.length ? ' <br> <span style=\'color: blue;\'> Procédés spéciaux : ' + this.procedesSpeciaux.join(' || ')  + '</span>' : "" }
             <br>
             ${compRender.join('')}
         </div>`

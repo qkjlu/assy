@@ -6,16 +6,14 @@ const sql = require("msnodesqlv8");
 const connectionString = "server=ser-sql2011;Database=NAV_MSI_PROD;Trusted_Connection=Yes;Driver={SQL Server Native Client 11.0}";
 
 app.use(cors())
-
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
 
-app.get('/of/:of', async (req, res) => {
+app.get('/of/:of([0-9]+)', async (req, res) => {
   console.log(req.method +" "+ req.url)
   const query = `select [Comp_ Serial No_], [Comp_ Item No_], [Comp_ Description], [Comp_ Lot No_], [Serial No_]
   from [PROD_MSI$Traçabilité OF]
-  where [Prod_ Order No_] = 'OF${req.params.of}' and [Comp_ Item No_] NOT LIKE 'FOURN%'
+  where [Prod_ Order No_] = 'OF${req.params.of}' 
   order by [Comp_ Serial No_] DESC`;
-
   sql.query(connectionString, query, (err, rows) => {
     if(err) {
       res.sendStatus(500)
@@ -25,7 +23,7 @@ app.get('/of/:of', async (req, res) => {
   });
 })
 
-app.get('/of/:of/:sn', async (req, res) => {
+app.get('/of/:of([0-9]+)/:sn([0-9]+)', async (req, res) => {
   console.log(req.method +" "+ req.url)
   const query = `select [Comp_ Serial No_], [Comp_ Item No_], [Comp_ Description], [Comp_ Lot No_], [Serial No_]
   from [PROD_MSI$Traçabilité OF]
@@ -40,12 +38,11 @@ app.get('/of/:of/:sn', async (req, res) => {
   });
 })
 
-app.get('/pv/:of/', async (req, res) => {
+app.get('/of/:of([0-9]+)/pv', async (req, res) => {
   console.log(req.method +" "+ req.url)
   const query = `select Num, IdUser
   from  [CP_PV_BASE]
   where NumOf = '${req.params.of}'`;
-
   sql.query(connectionString, query, (err, rows) => {
     if(err) {
       res.sendStatus(500)
@@ -55,15 +52,12 @@ app.get('/pv/:of/', async (req, res) => {
   });
 })
 
-app.get('/procedes-speciaux/:of', async (req, res) => {
+app.get('/of/:of([0-9]+)/procedes-speciaux', async (req, res) => {
   console.log(req.method +" "+ req.url)
-
   const inStatement = `(${procedesSpeciaux.map( x => `'${x}'` ).join()})`
-
   const query = `SELECT Description as description
   FROM [NAV_MSI_PROD].[dbo].[PROD_MSI$Prod_ Order Routing Line]
   WHERE [Prod_ Order No_] = 'OF${req.params.of}' AND No_ IN ${inStatement}`;
-
   sql.query(connectionString, query, (err, rows) => {
     if(err) {
       res.sendStatus(500)
@@ -73,6 +67,19 @@ app.get('/procedes-speciaux/:of', async (req, res) => {
   });
 })
 
+app.get('/of/:of([0-9]+)/description', async (req, res) => {
+  console.log(req.method +" "+ req.url)
+  const query = `SELECT DISTINCT Description as description
+  FROM [NAV_MSI_PROD].[dbo].[PROD_MSI$Traçabilité OF]
+  where [Prod_ Order No_] = 'OF${req.params.of}'`;
+  sql.query(connectionString, query, (err, rows) => {
+    if(err) {
+      res.sendStatus(500)
+      throw err
+    }
+    res.send(rows).status(200)
+  });
+})
 
 const procedesSpeciaux = [
   'CND2',
