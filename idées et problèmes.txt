@@ -4,7 +4,8 @@ IDEES DOMI :
 	(permet d'anticiper les oublis)
 _____________________________________________________________________________
 TO DO :
-	-Afficher le QP en dessous des procédés spéciaux (très utile pour les 803-01)
+	-Affiché l'intervale de numéro de série de l'OF racine
+	-Dans les composants : afficher le numéro de série de racine correspondant
 	-Mettre un style différent pour les OFs topsolid
 	-Gérer les kit fournitures sur les tandems (ils ne remontent pas, 
 	leur numéro de série est un OF sans SN)
