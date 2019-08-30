@@ -25,7 +25,9 @@ class Ensemble {
     }
     
     fetchAll(callback){
-        this._root.fetchDescr().then(this._root.fetchChildren(callback))
+        this._root.fetchDescr()
+        //.then(this._root.fetchSerials())
+        .then(this._root.fetchChildren(callback))
     }
     render() {
         return this._root.render()
@@ -104,6 +106,17 @@ class Composant {
     }
     getNum(){
         return this.num
+    }
+
+    fetchSerials() {
+        this.serials = []
+        return new Promise(resolve => {
+            fetch(`http://localhost:3000/of/${this.num}/sn`)
+                .then( response => { response.json() })
+                .then( result => {
+                    result.forEach( (value) => {this.serials.push(value)} )
+                })
+        })
     }
     fetchDescr(){
         return new Promise((resolve) => {
