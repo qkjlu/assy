@@ -4,6 +4,7 @@ IDEES DOMI :
 	(permet d'anticiper les oublis)
 _____________________________________________________________________________
 TO DO :
+	-Afficher le QP en dessous de procédés spéciaux
 	-Mettre un style différent pour les OFs topsolid
 	-Gérer les kit fournitures sur les tandems (ils ne remontent pas, 
 	leur numéro de série est un OF sans SN)

@@ -1,0 +1,13 @@
+.flex-container {
+    display: flex;
+    justify-content: center;
+    flex-flow: row wrap;
+}
+
+.composant{
+    border-style: solid; 
+    margin: 5px; 
+    padding: 5px; 
+    border-radius: 5px; 
+    background: #fff2e6; 
+}
